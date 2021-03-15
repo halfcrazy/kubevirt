@@ -22,6 +22,7 @@ package virtctl
 import (
 	"flag"
 	"fmt"
+	"k8s.io/klog"
 	"os"
 	"strings"
 
@@ -34,6 +35,16 @@ func AddGlogFlags(fs *pflag.FlagSet) {
 	global := flag.CommandLine
 	local := pflag.NewFlagSet(os.Args[0], pflag.ExitOnError)
 
+	klogFlags := flag.NewFlagSet("klog", flag.ExitOnError)
+	klog.InitFlags(klogFlags)
+
+	flag.CommandLine.VisitAll(func(f1 *flag.Flag) {
+		f2 := klogFlags.Lookup(f1.Name)
+		if f2 != nil {
+			value := f1.Value.String()
+			f2.Value.Set(value)
+		}
+	})
 	register(global, local, "v")
 
 	fs.AddFlagSet(local)
